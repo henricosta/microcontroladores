@@ -1,27 +1,19 @@
 @echo off
 setlocal
-
-REM Go to script directory
 cd /d "%~dp0"
-
-REM Check if virtual environment exists
 if not exist venv (
-    echo Creating virtual environment...
     python -m venv venv
 )
-
-REM Activate virtual environment
 call venv\Scripts\activate.bat
-
-REM Upgrade pip and install dependencies
-echo Installing dependencies...
 python -m pip install --upgrade pip
-python -m pip install pyserial
-
-REM Run the Python script
-echo Running script...
-python read_serial.py
-
-REM Deactivate and end
+python -m pip install -r requirements.txt
+start "API" cmd /c "python api.py"
+timeout /t 2 >nul
+if "%1"=="-test" (
+    python simulate_serial.py
+) else (
+    python read_serial.py
+)
+taskkill /FI "WINDOWTITLE eq API" /F >nul 2>&1
 deactivate
 endlocal
