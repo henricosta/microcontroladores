@@ -1,25 +1,44 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
-from typing import Optional
+from service import save_state, get_last_state, get_history, get_occupation_time
 import uvicorn
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
-latest_reading: Optional[str] = None
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class Leitura(BaseModel):
     valor: str
+    id_sensor: str | None = None
 
 @app.post("/salvar-leitura")
-def salvar_leitura(leitura: Leitura):
-    global latest_reading
-    latest_reading = leitura.valor
-    return {"status": "ok", "mensagem": "Leitura salva com sucesso"}
+def salvar_leitura_endpoint(leitura: Leitura):
+    changed = save_state(leitura.id_sensor, leitura.valor)
+    if changed:
+        return {"status": "ok", "mensagem": "Novo estado salvo"}
+    return {"status": "ok", "mensagem": "Estado não alterado"}
 
 @app.get("/obter-leitura")
-def obter_leitura():
-    if latest_reading is None:
-        raise HTTPException(status_code=404, detail="Nenhuma leitura disponível")
-    return {"valor": latest_reading}
+def obter_leitura_endpoint(id_sensor: str | None = Query(None)):
+    leitura = get_last_state(id_sensor)
+    if not leitura:
+        raise HTTPException(status_code=404, detail="Nenhuma leitura encontrada")
+    return leitura
+
+@app.get("/historico")
+def obter_historico_endpoint(id_sensor: str | None = Query(None)):
+    return get_history(id_sensor)
+
+@app.get("/tempo-ocupacao")
+def tempo_ocupacao_endpoint(id_sensor: str | None = Query(None)):
+    return get_occupation_time(id_sensor)
 
 @app.get("/test-api")
 def test_api():

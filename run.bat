@@ -7,13 +7,17 @@ if not exist venv (
 call venv\Scripts\activate.bat
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
+
 start "API" cmd /c "python api.py"
 timeout /t 2 >nul
+
 if "%1"=="-test" (
-    python simulate_serial.py
+    start "Simulator" cmd /c "python simulate_serial.py"
 ) else (
-    python read_serial.py
+    start "Reader" cmd /c "python read_serial.py"
 )
-taskkill /FI "WINDOWTITLE eq API" /F >nul 2>&1
-deactivate
-endlocal
+
+cd page
+start "Frontend" cmd /c "python -m http.server 8080"
+echo Running... API=8000, Frontend=8080
+pause

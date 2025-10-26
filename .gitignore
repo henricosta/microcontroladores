@@ -1,1 +1,3 @@
 dependencies/pyserial
+sensores.db
+__pycache__/
