@@ -1,110 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Parking Tracker</title>
-  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.7.0/flowbite.min.css" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.7.0/flowbite.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100">
-  <div id="app" class="container mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-6 text-center">Parking Tracker</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Parking Tracker</title>
+    <script src="./vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.7.0/flowbite.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.7.0/flowbite.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100">
+    <div id="app" class="container mx-auto p-6">
+      <ul
+        class="flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-gray-200"
+        role="tablist"
+      >
+        <li class="mr-2" role="presentation">
+          <button
+            @click="activeTab='current'"
+            :class="activeTab==='current' ? 'text-blue-600 border-b-2 border-blue-600' : ''"
+            class="inline-block p-4 rounded-t-lg"
+            type="button"
+          >
+            Status
+          </button>
+        </li>
+        <li class="mr-2" role="presentation">
+          <button
+            @click="activeTab='history'"
+            :class="activeTab==='history' ? 'text-blue-600 border-b-2 border-blue-600' : ''"
+            class="inline-block p-4 rounded-t-lg"
+            type="button"
+          >
+            Histórico
+          </button>
+        </li>
+      </ul>
 
-    <ul class="flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-gray-200" role="tablist">
-      <li class="mr-2" role="presentation">
-        <button @click="activeTab='current'" 
-                :class="activeTab==='current' ? 'text-blue-600 border-b-2 border-blue-600' : ''"
-                class="inline-block p-4 rounded-t-lg"
-                type="button">Current Status</button>
-      </li>
-      <li class="mr-2" role="presentation">
-        <button @click="activeTab='history'" 
-                :class="activeTab==='history' ? 'text-blue-600 border-b-2 border-blue-600' : ''"
-                class="inline-block p-4 rounded-t-lg"
-                type="button">History</button>
-      </li>
-    </ul>
-
-    <div class="p-4 bg-white rounded-b shadow">
-      <div v-if="activeTab==='current'">
-        <div class="grid grid-cols-4 gap-4">
-          <div v-for="sensor in sensors" :key="sensor.id" 
-               class="p-4 rounded shadow text-white flex flex-col items-center justify-center"
-               :class="sensor.valor==='1' ? 'bg-red-500' : 'bg-green-500'">
-            <div class="font-bold text-lg">Sensor {{ sensor.id_sensor || sensor.id }}</div>
-            <div class="mt-2">{{ sensor.valor==='1' ? 'Occupied' : 'Free' }}</div>
-            <div v-if="sensor.tempo_ocupado" class="text-sm mt-1">{{ sensor.tempo_ocupado }}</div>
+      <div class="p-4 bg-white rounded-b shadow">
+        <div v-if="activeTab==='current'">
+          <div class="grid grid-cols-4 gap-4">
+            <div
+              v-for="sensor in sensors"
+              :key="sensor.id_sensor"
+              class="p-4 rounded shadow text-white flex flex-col items-center justify-center"
+              :class="sensor.valor !== null 
+              ? (sensor.valor >= 0.5 ? 'bg-red-500' : 'bg-green-500') 
+              : 'bg-gray-400'"
+            >
+              <div class="font-bold text-lg">{{ sensor.id_sensor }}</div>
+              <div class="mt-2">
+                {{ sensor.valor !== null ? (sensor.valor >= 0.2 ? 'Ocupado' :
+                'Livre') : sensor.tempo_ocupado }}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div v-if="activeTab==='history'">
-        <table class="table-auto w-full border-collapse border border-gray-300">
-          <thead>
-            <tr class="bg-gray-200">
-              <th class="border px-2 py-1">ID</th>
-              <th class="border px-2 py-1">Sensor</th>
-              <th class="border px-2 py-1">Value</th>
-              <th class="border px-2 py-1">Timestamp</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="h in history" :key="h.id">
-              <td class="border px-2 py-1">{{ h.id }}</td>
-              <td class="border px-2 py-1">{{ h.id_sensor || h.id }}</td>
-              <td class="border px-2 py-1">{{ h.valor }}</td>
-              <td class="border px-2 py-1">{{ h.data_hora }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div v-if="activeTab==='history'">
+          <table
+            class="table-auto w-full border-collapse border border-gray-300"
+          >
+            <thead>
+              <tr class="bg-gray-200">
+                <th class="border px-2 py-1">ID</th>
+                <th class="border px-2 py-1">Sensor</th>
+                <th class="border px-2 py-1">Value</th>
+                <th class="border px-2 py-1">Timestamp</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="h in history" :key="h.id">
+                <td class="border px-2 py-1">{{ h.id }}</td>
+                <td class="border px-2 py-1">{{ h.id_sensor || h.id }}</td>
+                <td class="border px-2 py-1">{{ h.valor }}</td>
+                <td class="border px-2 py-1">{{ h.data_hora }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script>
-    const API_BASE = "http://localhost:8000"
-    const ENDPOINT_CURRENT = `${API_BASE}/obter-leitura`
-    const ENDPOINT_HISTORY = `${API_BASE}/historico`
-    const ENDPOINT_OCCUPATION = `${API_BASE}/tempo-ocupacao`
-    const ENDPOINT_TEST = `${API_BASE}/test-api`
-
-    const { createApp } = Vue;
-
-    createApp({
-      data() {
-        return {
-          activeTab: 'current',
-          sensors: [],
-          history: []
-        }
-      },
-      methods: {
-        fetchSensors() {
-          fetch(ENDPOINT_CURRENT)
-            .then(res => res.json())
-            .then(data => {
-              if(Array.isArray(data)) this.sensors = data
-              else this.sensors = [data]
-            })
-            .catch(err => console.error(err))
-        },
-        fetchHistory() {
-          fetch(ENDPOINT_HISTORY)
-            .then(res => res.json())
-            .then(data => this.history = data)
-            .catch(err => console.error(err))
-        }
-      },
-      mounted() {
-        this.fetchSensors()
-        this.fetchHistory()
-        setInterval(this.fetchSensors, 5000)
-        setInterval(this.fetchHistory, 10000)
-      }
-    }).mount('#app')
-  </script>
-</body>
+    <script src="./index.js"></script>
+  </body>
 </html>
