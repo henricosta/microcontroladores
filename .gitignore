@@ -1,3 +1,4 @@
 dependencies/pyserial
 sensores.db
 __pycache__/
+venv/

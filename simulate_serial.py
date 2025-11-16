@@ -8,7 +8,7 @@ print("Simulador iniciado. Enviando leituras falsas...\n")
 
 def send(sensor, value):
     try:
-        requests.post(API_URL, json={"id_sensor": sensor, "valor": value})
+        requests.post(API_URL, json={"id_sensor": sensor, "valor": "Vaga Ocupada" if float(value) >= 0.2 else "Vaga Livre"})
     except Exception as e:
         print(f"Falha ao enviar para {sensor}: {e}")
 

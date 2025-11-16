@@ -15,37 +15,17 @@ createApp({
     methods: {
         async fetchSensors() {
             try {
-                const { data } = await axios.get(ENDPOINT_HISTORY) // get full history
-                const sensors = []
-
-                // create a map of latest value per sensor
-                const latestBySensor = {}
-                data.forEach(record => {
-                    const id = record.id_sensor
-                    if (!latestBySensor[id] || new Date(record.data_hora) > new Date(latestBySensor[id].data_hora)) {
-                        latestBySensor[id] = record
+                const { data } = await axios.get(`${API_BASE}/sensores/json`)
+                this.sensors = data.sensors.map(sensor => {
+                    // normalize value
+                    let valor = sensor.valor
+                    if (typeof valor === "string") {
+                        valor = valor.toLowerCase()
+                        if (/ocupad[oa]/.test(valor)) valor = "Ocupado"
+                        else if (/livre/.test(valor)) valor = "Livre"
                     }
+                    return { ...sensor, valor }
                 })
-
-                // create grid of 20 sensors P1..P20
-                for (let i = 1; i <= 20; i++) {
-                    const id = `P${i}`
-                    if (latestBySensor[id]) {
-                        sensors.push({
-                            id_sensor: id,
-                            valor: latestBySensor[id].valor,
-                            tempo_ocupado: null // optional, can calculate if you want
-                        })
-                    } else {
-                        sensors.push({
-                            id_sensor: id,
-                            valor: null,
-                            tempo_ocupado: 'Não instalado'
-                        })
-                    }
-                }
-
-                this.sensors = sensors
             } catch (error) {
                 console.error('Error fetching sensors:', error)
                 this.sensors = []
@@ -54,7 +34,15 @@ createApp({
         async fetchHistory() {
             try {
                 const { data } = await axios.get(ENDPOINT_HISTORY)
-                this.history = data
+                this.history = data.map(h => {
+                    let valor = h.valor
+                    if (typeof valor === "string") {
+                        valor = valor.toLowerCase()
+                        if (/ocupad[oa]/.test(valor)) valor = "Ocupado"
+                        else if (/livre/.test(valor)) valor = "Livre"
+                    }
+                    return { ...h, valor }
+                })
             } catch (error) {
                 console.error('Error fetching history:', error)
             }
@@ -63,7 +51,33 @@ createApp({
     mounted() {
         this.fetchSensors()
         this.fetchHistory()
-        setInterval(this.fetchSensors, 200)
-        setInterval(this.fetchHistory, 200)
+        const ws = new WebSocket("ws://localhost:8000/ws")
+
+        ws.onopen = () => console.log("Connected to WebSocket")
+
+        ws.onmessage = (event) => {
+            console.log("Leitura broadcasted:", event.data)
+
+            let payload
+            try {
+                payload = JSON.parse(event.data)
+            } catch {
+                console.error("Invalid WebSocket message:", event.data)
+                return
+            }
+
+            const index = this.sensors.findIndex(s => s.id_sensor === payload.id_sensor)
+            if (index !== -1) {
+                let valor = payload.valor.toLowerCase()
+                if (/ocupad/.test(valor)) valor = "Ocupado"
+                else if (/livre/.test(valor)) valor = "Livre"
+                else valor = payload.valor
+
+                this.sensors[index] = { ...this.sensors[index], valor }
+            }
+        }
+
+        ws.onclose = () => console.log("WebSocket disconnected")
+        ws.onerror = (err) => console.error("WebSocket error:", err)
     }
 }).mount('#app')
