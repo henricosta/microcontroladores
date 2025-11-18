@@ -2,3 +2,5 @@ dependencies/pyserial
 sensores.db
 __pycache__/
 venv/
+
+Portable Python-3.10.5 x64/
