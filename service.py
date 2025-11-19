@@ -16,7 +16,7 @@ def get_last_state(id_sensor: str | None):
 
 def save_state(id_sensor: str | None, valor: float, parking_lot: str | None = None):
     last = get_last_state(id_sensor)
-    if last and last["valor"] == valor:
+    if last and str(last["valor"]) == str(valor):
         return False
 
     conn = get_connection()
