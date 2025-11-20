@@ -15,6 +15,7 @@ sleep 2
 if [ "$1" == "-test" ]; then
     python simulate_serial.py &
     SIM_PID=$!
+fi
 
 # Serve frontend folder
 cd page
