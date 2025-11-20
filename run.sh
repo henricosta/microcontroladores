@@ -12,6 +12,10 @@ python api.py &
 API_PID=$!
 sleep 2
 
+if [ "$1" == "-test" ]; then
+    python simulate_serial.py &
+    SIM_PID=$!
+
 # Serve frontend folder
 cd page
 python -m http.server 8080 &
