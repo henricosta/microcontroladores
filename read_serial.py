@@ -4,6 +4,7 @@ import sys
 import requests
 from concurrent.futures import ThreadPoolExecutor
 
+# API_URL = "http://159.203.102.203:8000/salvar-leitura"
 API_URL = "http://localhost:8000/salvar-leitura"
 SENSOR_ID = "P1"
 
