@@ -2,6 +2,12 @@
 
 ## Passo a Passo
 
+### (Opcional) Se estiver usando uma api externa para enviar as leituras use o comando abaixo no passo 3
+
+```cmd
+..\read_serial.bat
+```
+
 ### 1. Extrair Python Portable
 Execute o arquivo `Portable Python-3.10.5 x64.exe` para extrair o Python Portable.
 
